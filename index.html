@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maa Saraswati Library - Enquiry</title>
+<style>
+:root{--bg:#f2f4f9;--card:#fff;--ink:#101828;--mut:#667085;--acc:#2447d6;--on:#fff;--line:#e4e7ee;--ok:#12805c;--bad:#d92d20;--g1:#0b2a6b;--g2:#2f5bea}
+@media (prefers-color-scheme:dark){:root{--bg:#0c1220;--card:#141c30;--ink:#eef1f8;--mut:#94a0bb;--acc:#8fa8ff;--on:#0c1220;--line:#232d49;--ok:#5fd6a0;--bad:#ff8a80;--g1:#14275a;--g2:#2a46a8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:480px;margin:0 auto;padding:16px}
+.hd{border-radius:18px;padding:20px;color:#fff;background:linear-gradient(135deg,var(--g1),var(--g2));margin-bottom:14px}
+.hd h1{margin:0;font-size:1.3rem}.hd p{margin:4px 0 0;opacity:.9;font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+label{display:block;font-size:.85rem;font-weight:600;color:var(--mut);margin-top:12px}
+input,select{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;margin-top:4px}
+input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
+button{width:100%;margin-top:18px;padding:14px;border:0;border-radius:10px;background:var(--acc);color:var(--on);font:inherit;font-weight:700;cursor:pointer}
+button:disabled{opacity:.6}
+.msg{margin-top:14px;padding:12px;border-radius:10px;font-size:.95rem;display:none}
+.msg.ok{display:block;background:rgba(18,183,106,.14);color:var(--ok)}
+.msg.bad{display:block;background:rgba(217,45,32,.12);color:var(--bad)}
+.hp{position:absolute;left:-9999px;height:0;overflow:hidden}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <div class="hd"><h1>Maa Saraswati Library</h1><p>Seat ki enquiry ke liye form bharein. Hum jald sampark karenge.</p></div>
+ <div class="card" id="box">
+  <label for="n">Aapka naam</label><input id="n" maxlength="60" autocomplete="name" placeholder="Naam">
+  <label for="p">Mobile number</label><input id="p" type="tel" maxlength="20" autocomplete="tel" placeholder="Mobile number">
+  <label for="s">Shift</label>
+  <select id="s"><option value="Full">Full day</option><option value="Morning">Morning</option><option value="Evening">Evening</option></select>
+  <label for="t">Kuch aur batana ho (optional)</label><input id="t" maxlength="200" placeholder="Jaise: kab se join karna hai">
+  <div class="hp"><label for="w">Website</label><input id="w" tabindex="-1" autocomplete="off"></div>
+  <button id="b" onclick="send()">Enquiry bhejein</button>
+  <div class="msg" id="m"></div>
+ </div>
+</div>
+<script>
+var WA="919981178112";
+var FB={key:"AIzaSyBYz-ZzS0uhV_x-cb9lbzSsDcAIn11_W3g",pid:"ma-saraswati-library"};
+function $(i){return document.getElementById(i)}
+function show(t,c){var m=$("m");m.textContent=t;m.className="msg "+c}
+function today(){var d=new Date(),z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,10)}
+async function send(){
+ if($("w").value)return;
+ var n=$("n").value.trim(),p=$("p").value.trim(),s=$("s").value,t=$("t").value.trim();
+ if(!n&&!p)return show("Naam ya mobile number, kuch to likhein","bad");
+ try{var last=+localStorage.getItem("enq_last")||0;if(Date.now()-last<60000)return show("Kripya 1 minute baad dobara bhejein","bad")}catch(e){}
+ var b=$("b");b.disabled=true;show("Bheja ja raha hai...","ok");
+ var body={fields:{name:{stringValue:n},phone:{stringValue:p},shift:{stringValue:s},note:{stringValue:t},status:{stringValue:"New"},date:{stringValue:today()}}};
+ try{
+  var r=await fetch("https://firestore.googleapis.com/v1/projects/"+FB.pid+"/databases/(default)/documents/enquiries?key="+FB.key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok){var j=await r.json().catch(function(){return{}});throw new Error((j.error&&j.error.message)||r.status)}
+  try{localStorage.setItem("enq_last",String(Date.now()))}catch(e){}
+  var msg="Namaste, Maa Saraswati Library me seat ki enquiry.\nNaam: "+(n||"-")+"\nMobile: "+(p||"-")+"\nShift: "+s+(t?"\nNote: "+t:""),link="https://wa.me/"+WA+"?text="+encodeURIComponent(msg);
+  $("box").innerHTML='<h2 style="margin:0 0 6px">Dhanyavaad!</h2><p style="color:var(--mut);margin:0 0 12px">Aapki enquiry mil gayi hai. Hum jald aapse sampark karenge.</p><p style="margin:0 0 12px">Jaldi jawab ke liye WhatsApp par bhi bhej dein:</p><a href="'+link+'" style="display:block;text-align:center;padding:13px;border-radius:10px;background:#25d366;color:#04230f;font-weight:700;text-decoration:none">WhatsApp par bhejein</a>';
+  setTimeout(function(){location.href=link},1500);
+ }catch(e){b.disabled=false;show("Enquiry nahi gayi. Internet check karke dobara koshish karein. ("+e.message+")","bad")}
+}
+</script>
+</body>
+</html>
