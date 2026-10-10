@@ -39,7 +39,7 @@ button:disabled{opacity:.6}
  </div>
 </div>
 <script>
-var FB={key:"AIzaSyBYz-ZzS0uhV_x-cb9lbzSsDcAIn11_W3g",pid:"ma-saraswati-library"};
+var FB={rtdb:"https://ma-saraswati-library-default-rtdb.asia-southeast1.firebasedatabase.app"};
 function $(i){return document.getElementById(i)}
 function show(t,c){var m=$("m");m.textContent=t;m.className="msg "+c}
 function today(){var d=new Date(),z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,10)}
@@ -50,10 +50,10 @@ async function send(){
  if(p.length<10||p.length>15)return show("Sahi mobile number likhein (10 digit)","bad");
  try{var last=+localStorage.getItem("enq_last")||0;if(Date.now()-last<60000)return show("Kripya 1 minute baad dobara bhejein","bad")}catch(e){}
  var b=$("b");b.disabled=true;show("Bheja ja raha hai...","ok");
- var body={fields:{name:{stringValue:n},phone:{stringValue:p},shift:{stringValue:s},note:{stringValue:t},status:{stringValue:"New"},date:{stringValue:today()}}};
+ var body={name:n,phone:p,shift:s,note:t,status:"New",date:today()};
  try{
-  var r=await fetch("https://firestore.googleapis.com/v1/projects/"+FB.pid+"/databases/(default)/documents/enquiries?key="+FB.key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-  if(!r.ok){var j=await r.json().catch(function(){return{}});throw new Error((j.error&&j.error.message)||r.status)}
+  var r=await fetch(FB.rtdb+"/enquiries.json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok){var j=await r.json().catch(function(){return{}});throw new Error((j.error)||r.status)}
   try{localStorage.setItem("enq_last",String(Date.now()))}catch(e){}
   $("box").innerHTML='<h2 style="margin:0 0 6px">Dhanyavaad!</h2><p style="color:var(--mut);margin:0">Aapki enquiry mil gayi hai. Hum jald aapse sampark karenge.</p>';
  }catch(e){b.disabled=false;show("Enquiry nahi gayi. Internet check karke dobara koshish karein. ("+e.message+")","bad")}
